@@ -38,10 +38,10 @@ function retrieveAllTeams() returns json[]? {
 }
 
 function retrieveAllIssuesByTeam(int teamId) returns json[]? {
-    var repositories = githubDb->select(RETRIEVE_ISSUES_BY_TEAM, (), teamId);
-    if (repositories is table<record {}>) {
-        json repositoriesJson = jsonutils:fromTable(repositories);
-        return <json[]>repositoriesJson;
+    var issues = githubDb->select(RETRIEVE_ISSUES_BY_TEAM, (), teamId);
+    if (issues is table<record {}>) {
+        json issuesJson = jsonutils:fromTable(issues);
+        return <json[]>issuesJson;
     } else {
         log:printDebug("Error occured while retrieving the repo details from Database");
     }

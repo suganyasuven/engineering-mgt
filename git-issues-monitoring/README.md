@@ -21,6 +21,10 @@ It contains 3 modules :
      GMAIL_RECIPIENT = ""
      GMAIL_SENDER = ""
      GMAIL_CC = ""
+     
+     CRON_EXPRESSION_MAIL = ""
+     CRON_EXPRESSION_UPDATE = ""
+     CRON_EXPRESSION_UPDATE_COUNT = ""
  
  To run each module, navigate to the root directory of ballerina project and issue the following commands: 
  
