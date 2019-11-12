@@ -20,7 +20,6 @@ import ballerina/jsonutils;
 import ballerina/log;
 import ballerinax/java.jdbc;
 
-
 jdbc:Client githubDb = new ({
     url: "jdbc:mysql://localhost:3306/WSO2_ORGANIZATION_DETAILS",
     username: config:getAsString("DB_USERNAME"),
@@ -85,33 +84,32 @@ function getIssueAssignees(json[] issueAssignees) returns string {
 
 //Updates the repository table
 function insertIntoReposTable(json[] response, int orgId) {
+    map<json> existingRepos = {};
+    var repoUuidsJson = retrieveAllRepos(orgId);
+    if (repoUuidsJson is json[]) {
+        foreach json uuid in repoUuidsJson {
+            existingRepos[uuid.GITHUB_ID.toString()] = uuid;
+        }
+    } else {
+	    log:printError("Returned is not a json. Error occured while retrieving  the repository details: ",
+	    err = repoUuidsJson);
+    }
     foreach var repository in response {
-        boolean flag = true;
         string gitUuid = repository.id.toString();
         string repoName = repository.name.toString();
         string url = repository.html_url.toString();
-        int teamId = 1;
-        var repoUuidsJson = retrieveAllRepos(orgId);
-        if (repoUuidsJson is json[]) {
-            foreach var uuid in repoUuidsJson {
-                if (gitUuid == uuid.GITHUB_ID.toString()) {
-                    flag = false;
-                    if (repoName != uuid.REPOSITORY_NAME.toString() || url != uuid.URL.toString()) {
-                        var ret = githubDb->update(UPDATE_REPOSITORIES, repoName, url, gitUuid);
-                        handleUpdate(ret, "Updated the repository details with variable parameters");
-                    }
-                }
+        int teamId = 100;
+        if (existingRepos.hasKey(repository.id.toString())) {
+             if (repoName != existingRepos[gitUuid].REPOSITORY_NAME || url != existingRepos[gitUuid].URL) {
+                var ret = githubDb->update(UPDATE_REPOSITORIES, repoName, url, gitUuid);
+                handleUpdate(ret, "Updated the repository details with variable parameters");
             }
         } else {
-            log:printError("Returned is not a json. Error occured while retrieving  the repository details: ",
-            err = repoUuidsJson);
-        }
-        if (flag) {
             var ret = githubDb->update(INSERT_REPOSITORIES,
             gitUuid, repoName, orgId, url, teamId);
             handleUpdate(ret, "Inserted repository details with variable parameters");
         }
-    }
+	}
 }
 
 //Update to the repo table
